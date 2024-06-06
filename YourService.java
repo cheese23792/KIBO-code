@@ -10,8 +10,11 @@ import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
+import org.opencv.imgproc.Imgproc;
 
 public class YourService extends KiboRpcService{
     //setting up some required variables
@@ -19,22 +22,22 @@ public class YourService extends KiboRpcService{
     final int LOOP_MAX = 5;
 
     //observed item name and quantity
-    final String image1_name = "beaker";
-    final String image2_name = "beaker";
-    final String image3_name = "beaker";
-    final String image4_name = "beaker";
+    private String image1_name = "beaker";
+    private String image2_name = "beaker";
+    private String image3_name = "beaker";
+    private String image4_name = "beaker";
 
-    final int image1_value = 1;
-    final int image2_value = 1;
-    final int image3_value = 1;
-    final int image4_value = 1;
+    private int image1_value = 1;
+    private int image2_value = 1;
+    private int image3_value = 1;
+    private int image4_value = 1;
 
     //observed wanted-item name
-    final String imagewanted_name = "";
+    private String imagewanted_name = "";
 
     //model
-    //public static final String MODEL_PATH = "C:\\Users\\Cheese\\Downloads\\KIBO\\5thKibo-RPC_SampleAPK\\SampleApk\\app\\src\\main\\opencvmodel\\frozen_graph.pb"; // SavedModel format, i.e., the '.pb' file
-    //public static final String WEIGHTS_PATH = "C:\\Users\\Cheese\\Downloads\\KIBO\\5thKibo-RPC_SampleAPK\\SampleApk\\app\\src\\main\\opencvmodel\\frozen_graph.pbtxt"; // .pbtxt file
+    public static final String MODEL_PATH = "frozen_graph.pb"; // SavedModel format, i.e., the '.pb' file
+    public static final String WEIGHTS_PATH = "frozen_graph.pbtxt"; // .pbtxt file
 
     @Override
     protected void runPlan1(){
@@ -133,39 +136,27 @@ public class YourService extends KiboRpcService{
         //main code for observing each position (a bit scrubbed, will update when image processing is complete)
         locGoTo(1);
         Mat image1 = imageHandler();
-        /*
         getImageData(image1, 1);
-        */
-        locGoTo(1);
 
         Point arvpoint = new Point(10.95d, -8.6d, 4.6d);
-        Quaternion arvquaternion = new Quaternion(0f, 0.707f, 0f, 0.707f);
+        Quaternion arvquaternion = new Quaternion(0f, 0.383f, 0f, 0.924f);
         moveHandler(arvpoint, arvquaternion);
 
         locGoTo(2);
         Mat image2 = imageHandler();
-        /*
         getImageData(image2, 2);
-        */
-        locGoTo(2);
 
         locGoTo(3);
         Mat image3 = imageHandler();
-        /*
         getImageData(image3, 3);
-        */
-        locGoTo(3);
 
         arvpoint = new Point(10.85d, -7.9d, 4.4d);
-        arvquaternion = new Quaternion(0f, 0.707f, 0f, 0.707f);
+        arvquaternion = new Quaternion(0f, 0.383f, 0f, 0.924f);
         moveHandler(arvpoint, arvquaternion);
 
         locGoTo(4);
         Mat image4 = imageHandler();
-        /*
         getImageData(image4, 4);
-        */
-        locGoTo(4);
 
         locGoTo(5);
 
@@ -188,17 +179,16 @@ public class YourService extends KiboRpcService{
     private void wantedObserve(){
         //main code for observing wanted item, then move to that item to report
         Mat imagewanted = imageHandler();
-        /*
         getImageData(imagewanted, 5);
-        */
-        if (imagewanted_name == image1_name){
 
+        if (imagewanted_name == image1_name){
+            locGoTo(4);
         }
         else if (imagewanted_name == image2_name){
-
+            locGoTo(4);
         }
         else if (imagewanted_name == image3_name){
-
+            locGoTo(4);
         }
         else if (imagewanted_name == image4_name){
             locGoTo(4);
@@ -219,6 +209,47 @@ public class YourService extends KiboRpcService{
     private void getImageData(Mat image, int area){
         //main code for image processing
         //take in image and the area number, then change variable data (imageX_name, imageX_value)
+
+        String[] LABEL_MAP = {"unlabeled", "beaker", "goggle", "hammer", "top", "kapton_tape", "pipette", "screwdriver", "thermometer", "watch", "wrench"};
+
+        System.out.println("loading model");
+
+        Net model = Dnn.readNet(MODEL_PATH);
+
+        System.out.println("successfully loaded");
+
+        Mat rgbImage = new Mat(image.size(), image.type());
+        Imgproc.cvtColor(image, rgbImage, Imgproc.COLOR_GRAY2RGB);
+
+        Mat blob = Dnn.blobFromImage(rgbImage, 1.0/127.5, new Size(512, 512), new Scalar(127.5, 127.5, 127.5), true, false);
+
+        model.setInput(blob);
+        Mat cvOut = model.forward();
+
+        for (int i = 0; i < cvOut.size(2); i++) {
+            Mat detection = cvOut.row(0).colRange(i, i + 1);
+            double score = detection.get(0, 2)[0];
+            if (score > 0.3) {
+                String label = LABEL_MAP[(int) detection.get(0, 1)[0]];
+
+                System.out.println(label);
+                if (area == 1){
+                    image1_name = label;
+                }
+                else if (area == 2){
+                    image2_name = label;
+                }
+                else if (area == 3){
+                    image3_name = label;
+                }
+                else if (area == 4){
+                    image4_name = label;
+                }
+                else if (area == 5){
+                    imagewanted_name = label;
+                }
+            }
+        }
     }
 
     private Mat unfisheye(Mat image){
