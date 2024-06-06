@@ -1,5 +1,7 @@
 package jp.jaxa.iss.kibo.rpc.sampleapk;
 
+import android.content.res.AssetManager;
+
 import gov.nasa.arc.astrobee.Result;
 import jp.jaxa.iss.kibo.rpc.api.KiboRpcService;
 
@@ -15,6 +17,11 @@ import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class YourService extends KiboRpcService{
     //setting up some required variables
@@ -39,9 +46,38 @@ public class YourService extends KiboRpcService{
     public static final String MODEL_PATH = "frozen_graph.pb"; // SavedModel format, i.e., the '.pb' file
     public static final String WEIGHTS_PATH = "frozen_graph.pbtxt"; // .pbtxt file
 
+    File tempFile;
+
     @Override
     protected void runPlan1(){
-        //Net model = Dnn.readNet(MODEL_PATH, WEIGHTS_PATH);
+        try {
+            // Get the AssetManager instance
+            AssetManager assetManager = getAssets();
+
+            // Open the file from assets as an InputStream
+            InputStream inputStream = assetManager.open(MODEL_PATH);
+
+            // Create a temporary file in the cache directory
+            File cacheDir = getCacheDir();
+            tempFile = File.createTempFile("temp", ".pb", cacheDir);
+
+            // Write the contents of the InputStream to the temporary file
+            FileOutputStream outputStream = new FileOutputStream(tempFile);
+            byte[] buffer = new byte[1024];
+            int length = 0;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            // Close the streams
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
         api.startMission();
 
         runObserve();
@@ -138,8 +174,8 @@ public class YourService extends KiboRpcService{
         Mat image1 = imageHandler();
         getImageData(image1, 1);
 
-        Point arvpoint = new Point(10.95d, -8.6d, 4.6d);
-        Quaternion arvquaternion = new Quaternion(0f, 0.383f, 0f, 0.924f);
+        Point arvpoint = new Point(11d, -8.65d, 4.6d);
+        Quaternion arvquaternion = new Quaternion(0f, 0.573f, 0f, 0.819f);
         moveHandler(arvpoint, arvquaternion);
 
         locGoTo(2);
@@ -214,7 +250,7 @@ public class YourService extends KiboRpcService{
 
         System.out.println("loading model");
 
-        Net model = Dnn.readNet(MODEL_PATH);
+        Net model = Dnn.readNetFromTensorflow(tempFile.getAbsolutePath());
 
         System.out.println("successfully loaded");
 
