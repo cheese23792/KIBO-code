@@ -16,25 +16,15 @@ public class YourService extends KiboRpcService {
     //maximum api retries
     final int LOOP_MAX = 5;
 
-    //observed item name and quantity
-    private String image1_name = "beaker";
-    private String image2_name = "beaker";
-    private String image3_name = "beaker";
-    private String image4_name = "beaker";
-
-    //observed wanted-item name
-    private String imagewanted_name = "";
-
-    //recog class
-    ImageRecogProcess imageRecog;;
+    //setting recognition tool
+    ImageRecogProcess recognitionTool = new ImageRecogProcess();
 
     @Override
     protected void runPlan1() {
-        imageRecog = new ImageRecogProcess(this);
         api.startMission();
 
-        runObserve();
-        runWanted();
+        runObservationRound();
+        runSpottingRound();
     }
 
     @Override
@@ -45,6 +35,70 @@ public class YourService extends KiboRpcService {
     @Override
     protected void runPlan3() {
         // write your plan 3 here.
+    }
+
+    private void runObservationRound() {
+        //main code for observing each position
+        Mat image;
+        locateDefaultPoint(1);
+        image = imageHandler();
+        recognitionTool.imageRecognition(image, 1);
+        api.saveMatImage(image, "image1.png"); //can delete
+
+        moveHandler(new Point(11d, -8.65d, 4.6d), new Quaternion(0f, 0.573f, 0f, 0.819f));
+
+        locateDefaultPoint(2);
+        image = imageHandler();
+        recognitionTool.imageRecognition(image, 2);
+        api.saveMatImage(image, "image2.png"); //can delete
+
+        locateDefaultPoint(3);
+        image = imageHandler();
+        recognitionTool.imageRecognition(image, 3);
+        api.saveMatImage(image, "image3.png"); //can delete
+
+        moveHandler(new Point(10.85d, -7.9d, 4.4d), new Quaternion(0f, 0.383f, 0f, 0.924f));
+
+        locateDefaultPoint(4);
+        image = imageHandler();
+        recognitionTool.imageRecognition(image, 4);
+        api.saveMatImage(image, "image4.png"); //can delete
+
+        locateDefaultPoint(5);
+
+        api.reportRoundingCompletion();
+    }
+
+    private void runSpottingRound() {
+        //main code for observing wanted item, then move to that item to report
+        Mat image;
+        image = imageHandler();
+        recognitionTool.imageRecognition(image, 5);
+        api.saveMatImage(image, "image5.png");
+
+        if (recognitionTool.isArea(1)) {
+            locateDefaultPoint(4);
+        }
+        else if (recognitionTool.isArea(2)) {
+            locateDefaultPoint(4);
+        }
+        else if (recognitionTool.isArea(3)) {
+            locateDefaultPoint(4);
+        }
+        else if (recognitionTool.isArea(4)) {
+            locateDefaultPoint(4);
+        }
+        else {
+            locateDefaultPoint(4);
+        }
+
+        //taking image for the chosen item (can delete)
+        image = imageHandler();
+        api.saveMatImage(image, "image6.png");
+
+        //notifying and taking snapshot of the item wanted by astronaut
+        api.notifyRecognitionItem();
+        api.takeTargetItemSnapshot();
     }
 
     private void moveHandler(Point arvpoint, Quaternion arvquaternion) {
@@ -73,12 +127,11 @@ public class YourService extends KiboRpcService {
             image = api.getMatNavCam();
             ++loopCounter;
         }
-        //fixing fisheye effect
-        image = unfisheye(image);
+        image = clearFisheyeEffect(image);
         return image;
     }
 
-    private void locGoTo(int pos) {
+    private void locateDefaultPoint(int pos) {
         //default position setup
         Point arvpoint;
         Quaternion arvquaternion;
@@ -115,85 +168,8 @@ public class YourService extends KiboRpcService {
         }
     }
 
-    private void runObserve() {
-        //main code for observing each position (a bit scrubbed, will update when image processing is complete)
-        locGoTo(1);
-        Mat image1 = imageHandler();
-        getImageData(image1, 1);
-
-        Point arvpoint = new Point(11d, -8.65d, 4.6d);
-        Quaternion arvquaternion = new Quaternion(0f, 0.573f, 0f, 0.819f);
-        moveHandler(arvpoint, arvquaternion);
-
-        locGoTo(2);
-        Mat image2 = imageHandler();
-        getImageData(image2, 2);
-
-        locGoTo(3);
-        Mat image3 = imageHandler();
-        getImageData(image3, 3);
-
-        arvpoint = new Point(10.85d, -7.9d, 4.4d);
-        arvquaternion = new Quaternion(0f, 0.383f, 0f, 0.924f);
-        moveHandler(arvpoint, arvquaternion);
-
-        locGoTo(4);
-        Mat image4 = imageHandler();
-        getImageData(image4, 4);
-
-        locGoTo(5);
-
-        //saving image as png file (can delete)
-        api.saveMatImage(image1, "image1.png");
-        api.saveMatImage(image2, "image2.png");
-        api.saveMatImage(image3, "image3.png");
-        api.saveMatImage(image4, "image4.png");
-    }
-
-    private void runWanted() {
-        //main code for observing wanted item, then move to that item to report
-        api.reportRoundingCompletion();
-
-        Mat imagewanted = imageHandler();
-        getImageData(imagewanted, 5);
-
-        if (imagewanted_name == image1_name) {
-            locGoTo(4);
-        } else if (imagewanted_name == image2_name) {
-            locGoTo(4);
-        } else if (imagewanted_name == image3_name) {
-            locGoTo(4);
-        } else if (imagewanted_name == image4_name) {
-            locGoTo(4);
-        } else {
-            locGoTo(4);
-        }
-        //taking image for the chosen item (can delete)
-        Mat imagechosen = imageHandler();
-        //saving image as a png file (can delete)
-        api.saveMatImage(imagewanted, "imagewanted.png");
-        api.saveMatImage(imagechosen, "imagechosen.png");
-        //notifying and taking snapshot of the item wanted by astronaut
-        api.notifyRecognitionItem();
-        api.takeTargetItemSnapshot();
-    }
-
-    private void getImageData(Mat image, int area) {
-        //main code for image processing
-        if (area == 1) {
-            image1_name = imageRecog.matchTemplate(image, 1);
-        } else if (area == 2) {
-            image2_name = imageRecog.matchTemplate(image, 2);
-        } else if (area == 3) {
-            image3_name = imageRecog.matchTemplate(image, 3);
-        } else if (area == 4) {
-            image4_name = imageRecog.matchTemplate(image, 4);
-        } else if (area == 5) {
-            imagewanted_name = imageRecog.matchTemplate(image, 5);
-        }
-    }
-
-    private Mat unfisheye(Mat image) {
+    //image methods
+    private Mat clearFisheyeEffect(Mat image) {
         //configuration for removing fisheye effect
         Mat cameraMatrix = new Mat(3, 3, CvType.CV_64F);
         cameraMatrix.put(0, 0, api.getNavCamIntrinsics()[0]);
