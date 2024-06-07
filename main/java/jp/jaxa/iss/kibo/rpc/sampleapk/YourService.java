@@ -66,6 +66,11 @@ public class YourService extends KiboRpcService {
 
         locateDefaultPoint(5);
 
+        api.setAreaInfo(1, recognitionTool.getName(1), recognitionTool.getCount(1));
+        api.setAreaInfo(2, recognitionTool.getName(2), recognitionTool.getCount(2));
+        api.setAreaInfo(3, recognitionTool.getName(3), recognitionTool.getCount(3));
+        api.setAreaInfo(4, recognitionTool.getName(4), recognitionTool.getCount(4));
+
         api.reportRoundingCompletion();
     }
 
