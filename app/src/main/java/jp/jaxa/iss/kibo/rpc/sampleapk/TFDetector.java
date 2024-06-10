@@ -1,5 +1,6 @@
 package jp.jaxa.iss.kibo.rpc.sampleapk;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 
 import org.opencv.android.Utils;
@@ -11,7 +12,7 @@ public class TFDetector {
 
     private static TFLiteHelper helper = new TFLiteHelper();
 
-    public static void analyzeImage(Mat CVimage){
+    public static void analyzeImage(Context context,  Mat CVimage){
 
         // Implementing this on OpenCV
 //         Image imageAnalyzer = ImageAnalysis.Builder()
@@ -35,11 +36,12 @@ public class TFDetector {
 
         Bitmap bitmap = Bitmap.createBitmap(CVimage.width(), CVimage.height(), Bitmap.Config.RGB_565);
         Utils.matToBitmap(CVimage, bitmap);
-        detectObjects(bitmap);
+        System.out.println("[Debug] Bitmap created");
+        detectObjects(context, bitmap);
     }
 
-    private static void detectObjects(Bitmap image) {
+    private static void detectObjects(Context context, Bitmap image) {
         // Copy out RGB bits to the shared bitmap buffer
-        helper.detect(image, 0);
+        helper.detect(context, image, 0);
     }
 }

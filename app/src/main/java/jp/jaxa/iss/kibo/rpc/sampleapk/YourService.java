@@ -1,5 +1,8 @@
 package jp.jaxa.iss.kibo.rpc.sampleapk;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+
 import gov.nasa.arc.astrobee.Result;
 import jp.jaxa.iss.kibo.rpc.api.KiboRpcService;
 
@@ -18,6 +21,8 @@ public class YourService extends KiboRpcService {
 
     //setting recognition tool
     ImageRecogProcess recognitionTool = new ImageRecogProcess();
+
+    Context context = getApplicationContext();
 
     @Override
     protected void runPlan1() {
@@ -43,37 +48,41 @@ public class YourService extends KiboRpcService {
         locateDefaultPoint(1);
         image = imageHandler();
 
-        TFDetector.analyzeImage(image);
+        System.out.println("[Debug] Analyzing Image");
+        try {
+            TFDetector.analyzeImage(context, image);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
-        recognitionTool.imageRecognition(image, 1);
         api.saveMatImage(image, "image1.png"); //can delete
 
         moveHandler(new Point(11d, -8.65d, 4.6d), new Quaternion(0f, 0.573f, 0f, 0.819f));
 
-        locateDefaultPoint(2);
-        image = imageHandler();
-        recognitionTool.imageRecognition(image, 2);
-        api.saveMatImage(image, "image2.png"); //can delete
-
-        locateDefaultPoint(3);
-        image = imageHandler();
-        recognitionTool.imageRecognition(image, 3);
-        api.saveMatImage(image, "image3.png"); //can delete
-
-        moveHandler(new Point(10.85d, -7.9d, 4.4d), new Quaternion(0f, 0.383f, 0f, 0.924f));
-
-        locateDefaultPoint(4);
-        image = imageHandler();
-        recognitionTool.imageRecognition(image, 4);
-        api.saveMatImage(image, "image4.png"); //can delete
-
-        locateDefaultPoint(5);
-
-        api.setAreaInfo(1, recognitionTool.getName(1), recognitionTool.getCount(1));
-        api.setAreaInfo(2, recognitionTool.getName(2), recognitionTool.getCount(2));
-        api.setAreaInfo(3, recognitionTool.getName(3), recognitionTool.getCount(3));
-        api.setAreaInfo(4, recognitionTool.getName(4), recognitionTool.getCount(4));
-
+//        locateDefaultPoint(2);
+//        image = imageHandler();
+//        recognitionTool.imageRecognition(image, 2);
+//        api.saveMatImage(image, "image2.png"); //can delete
+//
+//        locateDefaultPoint(3);
+//        image = imageHandler();
+//        recognitionTool.imageRecognition(image, 3);
+//        api.saveMatImage(image, "image3.png"); //can delete
+//
+//        moveHandler(new Point(10.85d, -7.9d, 4.4d), new Quaternion(0f, 0.383f, 0f, 0.924f));
+//
+//        locateDefaultPoint(4);
+//        image = imageHandler();
+//        recognitionTool.imageRecognition(image, 4);
+//        api.saveMatImage(image, "image4.png"); //can delete
+//
+//        locateDefaultPoint(5);
+//
+//        api.setAreaInfo(1, recognitionTool.getName(1), recognitionTool.getCount(1));
+//        api.setAreaInfo(2, recognitionTool.getName(2), recognitionTool.getCount(2));
+//        api.setAreaInfo(3, recognitionTool.getName(3), recognitionTool.getCount(3));
+//        api.setAreaInfo(4, recognitionTool.getName(4), recognitionTool.getCount(4));
+//
         api.reportRoundingCompletion();
     }
 

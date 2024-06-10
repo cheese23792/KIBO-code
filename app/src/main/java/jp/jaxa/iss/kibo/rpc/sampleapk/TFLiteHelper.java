@@ -34,15 +34,16 @@ public class TFLiteHelper {
     // will not change, a lazy val would be preferable.
     private static ObjectDetector objectDetector = null;
 
-    public TFLiteHelper() {
-        setupObjectDetector();
-    }
+//    public TFLiteHelper() {
+//        setupObjectDetector();
+//    }
 
     // Initialize the object detector using current settings on the
     // thread that is using it. CPU and NNAPI delegates can be used with detectors
     // that are created on the main thread and used on a background thread, but
     // the GPU delegate needs to be used on the thread that initialized the detector
     private void setupObjectDetector() {
+        System.out.println("[Debug] Setting up option");
         // Create the base options for the detector using specifies max results and score threshold
         ObjectDetector.ObjectDetectorOptions.Builder optionsBuilder =
                 ObjectDetector.ObjectDetectorOptions.builder()
@@ -68,14 +69,23 @@ public class TFLiteHelper {
         String modelName = "model.tflite";
 
         try {
+            System.out.println("[Debug] Loading model");
             objectDetector = ObjectDetector.createFromFileAndOptions(context, modelName, optionsBuilder.build());
+            System.out.println("[Debug] Successfully loaded");
         } catch (IllegalStateException | IOException e) {
             objectDetectorListener.onError("Object detector failed to initialize. See error logs for details");
             Log.e("Test", "TFLite failed to load model with error: " + e.getMessage());
         }
     }
 
-    public void detect(Bitmap image, int imageRotation) {
+    public void detect(Context lcontext, Bitmap image, int imageRotation) {
+
+        if (objectDetector == null){
+            context = lcontext;
+            System.out.println("[Debug] Initializing objectDetector");
+            setupObjectDetector();
+        }
+        System.out.println("[Debug] Found objectDetector");
 
         // Inference time is the difference between the system time at the start and finish of the
         // process
@@ -89,9 +99,13 @@ public class TFLiteHelper {
                 .build();
 
         // Preprocess the image and convert it into a TensorImage for detection.
+        System.out.println("[Debug] creating tensor image");
         TensorImage tensorImage = imageProcessor.process(TensorImage.fromBitmap(image));
+        System.out.println("[Debug] Successfully created");
 
+        System.out.println("[Debug] Detecting...");
         List<Detection> results = objectDetector.detect(tensorImage);
+        System.out.println("[Debug] Success!");
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime;
 
         System.out.println("/n=========================================================");
@@ -114,5 +128,10 @@ public class TFLiteHelper {
                 int imageWidth
         );
     }
+
+//    private Bitmap createBox(){
+//
+//        return
+//    }
 }
 
