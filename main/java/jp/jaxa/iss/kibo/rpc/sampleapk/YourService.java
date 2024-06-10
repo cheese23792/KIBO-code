@@ -138,8 +138,8 @@ public class YourService extends KiboRpcService {
 
     private void locateDefaultPoint(int pos) {
         //default position setup
-        Point arvpoint;
-        Quaternion arvquaternion;
+        Point arvpoint = null;
+        Quaternion arvquaternion = null;
         if (pos == 1) {
             //Get to area 1
             arvpoint = new Point(10.95d, -9.9d, 5.3d);
