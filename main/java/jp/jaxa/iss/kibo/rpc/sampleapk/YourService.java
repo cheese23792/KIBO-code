@@ -144,33 +144,24 @@ public class YourService extends KiboRpcService {
             //Get to area 1
             arvpoint = new Point(10.95d, -9.9d, 5.3d);
             arvquaternion = new Quaternion(0f, 0f, 0.707f, -0.707f);
-
-            moveHandler(arvpoint, arvquaternion);
         } else if (pos == 2) {
             //Get to area 2
             arvpoint = new Point(11d, -8.7d, 4.4d);
             arvquaternion = new Quaternion(0f, 0.707f, 0f, 0.707f);
-
-            moveHandler(arvpoint, arvquaternion);
         } else if (pos == 3) {
             //Get to area 3
             arvpoint = new Point(11d, -7.9d, 4.4d);
             arvquaternion = new Quaternion(0f, 0.707f, 0f, 0.707f);
-
-            moveHandler(arvpoint, arvquaternion);
         } else if (pos == 4) {
             //Get to area 4
             arvpoint = new Point(10.65d, -6.8d, 5d);
             arvquaternion = new Quaternion(0f, 0f, -1f, 0f);
-
-            moveHandler(arvpoint, arvquaternion);
         } else if (pos == 5) {
             //Get to astronaut
             arvpoint = new Point(11.14d, -6.77d, 4.96d);
             arvquaternion = new Quaternion(0f, 0f, 0.707f, 0.707f);
-
-            moveHandler(arvpoint, arvquaternion);
         }
+        moveHandler(arvpoint, arvquaternion);
     }
 
     //image methods
