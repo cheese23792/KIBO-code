@@ -82,13 +82,17 @@ public class YourService extends KiboRpcService {
         api.saveMatImage(image, "image5.png");
 
         if (recognitionTool.isArea(1)) {
-            locateDefaultPoint(4);
+            moveHandler(new Point(11d, -7.4d, 5.1d), new Quaternion(0f, 0f, 0.707f, -0.707f));
+            moveHandler(new Point(11d, -8.5d, 4.85d), new Quaternion(0f, 0f, 0.707f, -0.707f));
+            locateDefaultPoint(1);
         }
         else if (recognitionTool.isArea(2)) {
-            locateDefaultPoint(4);
+            moveHandler(new Point(11d, -7.4d, 5.1d), new Quaternion(0f, 0.707f, 0f, 0.707f));
+            locateDefaultPoint(2);
         }
         else if (recognitionTool.isArea(3)) {
-            locateDefaultPoint(4);
+            moveHandler(new Point(11d, -7.4d, 5.1d), new Quaternion(0f, 0.707f, 0f, 0.707f));
+            locateDefaultPoint(3);
         }
         else if (recognitionTool.isArea(4)) {
             locateDefaultPoint(4);
